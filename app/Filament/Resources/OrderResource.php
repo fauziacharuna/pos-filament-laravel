@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\OrderExporter;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\RelationManagers;
 use App\Filament\Resources\OrderResource\RelationManagers\OrderDetailsRelationManager;
@@ -10,6 +11,7 @@ use App\Models\Order;
 use App\Models\Product;
 use Dom\Text;
 use Filament\Forms;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -19,9 +21,10 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Set;
 use Filament\Forms\Get;
-
+use Filament\Tables\Actions\ExportAction;
 use Filament\Resources\Resource;
 use Filament\Tables;
+
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -46,8 +49,6 @@ class OrderResource extends Resource
                     ->columnSpanFull(),
                 Group::make()
                     ->schema([
-
-
                         Section::make('Customer Information')
                             ->columns(3)
                             ->description('Fill in the details of the order.')
@@ -104,6 +105,7 @@ class OrderResource extends Resource
                                             }),
                                         TextInput::make('quantity')
                                             ->numeric()
+                                            ->minValue(0)
                                             ->reactive()
                                             ->default(1)
                                             ->afterStateUpdated(function ($state, Set $set, Get $get) {
@@ -133,6 +135,8 @@ class OrderResource extends Resource
                                             ->numeric()
 
                                     ])->columns(4)
+                                    ->hiddenLabel()
+                                    ->addAction(fn(Action $action) => $action->label('Add Product')->color('primary')->icon('heroicon-o-plus'))
                             ]),
                         Forms\Components\TextInput::make('total_price')
                             ->disabled()
@@ -183,6 +187,25 @@ class OrderResource extends Resource
                             ->dehydrated()
                             ->columnSpanFull()
                             ->prefix('Rp. '),
+                            Select::make('payment_method')
+                                ->options([
+                                    'cash' => 'Cash',
+                                    'credit_card' => 'Credit Card',
+                                    'debit_card' => 'Debit Card',
+                                    'mobile_payment' => 'Mobile Payment',
+                                    'qris'=> 'QRIS',
+                                ])
+                                ->default('cash')
+                                ->nullable()
+                                ->columnSpan(2),
+                            Select::make('payment_status')
+                                ->options([
+                                    'paid' => 'Paid',
+                                    'unpaid' => 'Unpaid',
+                                    'failed' => 'Failed',
+                                ])
+                                ->default('unpaid') 
+                                ->columnSpan(2)
                     ])->columnSpan(1)
                     ->columns(4),
 
@@ -193,6 +216,7 @@ class OrderResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('id')->sortable()->label('Order ID'),
                 Tables\Columns\TextColumn::make('customer.name')
                     ->numeric()
                     ->searchable()
@@ -227,6 +251,12 @@ class OrderResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+            ])
+            ->headerActions([
+                ExportAction::make('export')
+                    ->label('Export Orders')
+                    ->icon('heroicon-o-document-arrow-up')
+                    ->exporter(OrderExporter::class),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

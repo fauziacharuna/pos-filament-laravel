@@ -15,6 +15,10 @@ class Order extends Model
         'discount_amount',
         'payment_method',
         'status',
+        'payment_status',
+        'payment_reference',
+        'paid_at',
+        'notes',    
 
     ];
     public function customer()

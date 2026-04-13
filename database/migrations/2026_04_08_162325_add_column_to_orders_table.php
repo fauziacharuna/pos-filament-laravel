@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::table('orders', function (Blueprint $table) {
             //
-            $table->enum('status', ['new', 'processing', 'cancelled','completed'])->default('new')->after('total_price');
-            $table->integer('discount')->default(0)->after('status');
-            $table->decimal('discount_amount', 10, 2)->default(0)->after('discount');
-            $table->decimal('total_payment', 10, 2)->default(0)->after('discount_amount');
+            $table->enum('payment_status', ['paid', 'unpaid', 'failed'])->default('unpaid')->after('total_payment');
+            $table->enum('payment_method', ['cash', 'credit_card', 'debit_card', 'mobile_payment'])->nullable()->after('payment_status');
+            $table->string('payment_reference')->nullable()->after('payment_method');
+            $table->dateTime('paid_at')->nullable()->after('payment_reference');
+            $table->string('notes')->nullable()->after('paid_at');
         });
     }
 

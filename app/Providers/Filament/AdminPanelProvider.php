@@ -27,9 +27,10 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('POS Admin')
-            ->brandLogo(asset('image/logo.png'))
+            ->brandName('Admin')
+            // ->brandLogo(asset('image/logo.png'))
             ->brandLogoHeight('50px')
+            ->databaseNotifications()
             ->colors([
                 'primary' => Color::Blue,
             ])

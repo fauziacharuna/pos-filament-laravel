@@ -16,6 +16,10 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained()->onDelete('cascade');
             $table->decimal('total_price', 10, 2);
             $table->date('date');
+             $table->enum('status', ['new', 'processing', 'cancelled','completed'])->default('new')->after('total_price');
+            $table->integer('discount')->default(0)->after('status');
+            $table->decimal('discount_amount', 10, 2)->default(0)->after('discount');
+            $table->decimal('total_payment', 10, 2)->default(0)->after('discount_amount');
             $table->timestamps();
         });
     }

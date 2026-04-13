@@ -7,11 +7,14 @@ use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\ImageColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -19,37 +22,65 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-square-3-stack-3d';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('price')
-                    ->required()
-                    ->numeric()
-                    ->prefix('Rp. '),
-                Forms\Components\TextInput::make('stock')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('description')
-                    ->maxLength(255),
-                // Forms\Components\FileUpload::make('image')
-                //     ->image(),
-                FileUpload::make('image'),
-                Forms\Components\TextInput::make('category')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('supplier')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('sku')
-                    ->label('SKU')
-                    ->maxLength(255),
-                Forms\Components\Toggle::make('is_active')
-                    ->required(),
-            ]);
+        
+    return $form->schema([
+
+    Section::make('Kategori Produk')
+        ->schema([
+            Select::make('brand_id')
+                ->relationship('brand', 'name')
+                ->required(),
+
+            Select::make('category_id')
+                ->relationship('category', 'name')
+                ->required(),
+
+            Select::make('sub_category_id')
+                ->relationship('subCategory', 'name')
+                ->required(),
+        ])
+        ->columns(3),
+
+    Section::make('Informasi Produk')
+        ->schema([
+            TextInput::make('name')
+                ->required(),
+
+            TextInput::make('price')
+                ->numeric()
+                ->prefix('Rp')
+                ->required(),
+
+            TextInput::make('stock')
+                ->numeric()
+                ->required(),
+        ])
+        ->columns(3),
+
+    Section::make('Detail Tambahan')
+        ->schema([
+            TextInput::make('description'),
+            TextInput::make('supplier'),
+            TextInput::make('sku')
+                ->label('SKU'),
+        ])
+        ->columns(2),
+
+    Section::make('Media & Status')
+        ->schema([
+            FileUpload::make('image')
+                ->image(),
+
+            Toggle::make('is_active')
+                ->required(),
+        ])
+        ->columns(2),
+
+]);
     }
 
     public static function table(Table $table): Table
@@ -66,10 +97,7 @@ class ProductResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('description')
                     ->searchable(),
-              Tables\Columns\ImageColumn::make('image'),
-    // ->disk('public')
-    // ->size(50, 50)
-    // ->url(fn ($record) => asset('storage/product/' . $record->image)),
+                Tables\Columns\ImageColumn::make('image'),
                 Tables\Columns\TextColumn::make('category')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('supplier')
@@ -87,6 +115,15 @@ class ProductResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('brand_id')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('category_id')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('sub_category_id')
+                    ->numeric()
+                    ->sortable(),
             ])
             ->filters([
                 //
@@ -94,7 +131,6 @@ class ProductResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
